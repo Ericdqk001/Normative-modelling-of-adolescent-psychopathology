@@ -38,6 +38,11 @@ def preprocess(
         "processed_data",
     )
 
+    data_path = Path(
+        analysis_root_path,
+        "data",
+    )
+
     if not processed_data_path.exists():
         processed_data_path.mkdir(
             parents=True,
@@ -414,14 +419,84 @@ def preprocess(
     )
 
     # %%
+    # Joining CBCL scales
+
+    mental_health_path = Path(
+        core_data_path,
+        "mental-health",
+    )
+
+    cbcl_path = Path(
+        mental_health_path,
+        "mh_p_cbcl.csv",
+    )
+
+    cbcl_df = pd.read_csv(
+        cbcl_path,
+        index_col=0,
+        low_memory=False,
+    )
+
+    cbcl_df = cbcl_df[cbcl_df["eventname"] == wave]
+
+    cbcl_variables_path = Path(
+        data_path,
+        "cbcl_8_dim_t.csv",
+    )
+
+    cbcl_variables_df = pd.read_csv(
+        cbcl_variables_path,
+        index_col=0,
+        low_memory=False,
+    )
+
+    cbcl_variable_names = cbcl_variables_df["var_name"].tolist()
+
+    logging.info("CBCL variable names: %s", cbcl_variable_names)
+
+    # Select the CBCL variables of interest
+    cbcl_scales = cbcl_df[cbcl_variable_names]
+
+    cbcl_scales = cbcl_scales.dropna()
+
+    logging.info(
+        "Sample size with CBCL scales, number = %d",
+        cbcl_scales.shape[0],
+    )
+
+    # Create binary variables for the CBCL scales for LCA analysis
+
+    cbcl_binary_scales = cbcl_scales.copy()
+
+    cbcl_binary_scales = (cbcl_binary_scales >= 65).astype(int)
+
+    # Add one here because LCA expects 1/2 rather than 0/1
+
+    cbcl_binary_scales += 1
+
+    # Join the CBCL scales to the imaging features and covariates
+
+    mri_all_features_cov_cbcl = mri_all_features_cov.join(
+        cbcl_binary_scales,
+        how="left",
+    ).dropna()
+
+    logging.info(
+        "Sample size with all imaging features, covariates and CBCL scales, number = %d",
+        mri_all_features_cov_cbcl.shape[0],
+    )
+
+    # %%
+
+    # %%
     # %% Keep unrelated subjects
 
     seed = 42
 
     logging.info("Keeping unrelated subjects, random seed = %d", seed)
 
-    mri_all_features_cov_unrelated = mri_all_features_cov.loc[
-        mri_all_features_cov.groupby(["rel_family_id"]).apply(
+    mri_all_features_cov_cbcl_unrelated = mri_all_features_cov_cbcl.loc[
+        mri_all_features_cov_cbcl.groupby(["rel_family_id"]).apply(
             lambda x: x.sample(n=1, random_state=seed).index[0]
         ),
     ]
@@ -430,20 +505,20 @@ def preprocess(
 
     logging.info(
         "Sample size after keeping unrelated subjects, number = %d",
-        mri_all_features_cov_unrelated.shape[0],
+        mri_all_features_cov_cbcl_unrelated.shape[0],
     )
     # %%
 
     # Average the bilateral features
 
     lh_columns = [
-        col for col in mri_all_features_cov_unrelated.columns if col.endswith("lh")
+        col for col in mri_all_features_cov_cbcl_unrelated.columns if col.endswith("lh")
     ]
 
     logging.info("Number of left hemisphere features: %d", len(lh_columns))
 
     rh_columns = [
-        col for col in mri_all_features_cov_unrelated.columns if col.endswith("rh")
+        col for col in mri_all_features_cov_cbcl_unrelated.columns if col.endswith("rh")
     ]
 
     logging.info("Number of right hemisphere features: %d", len(rh_columns))
@@ -463,7 +538,7 @@ def preprocess(
     # Identify all other columns (covariates, unilateral features, PRS.)
     other_columns = [
         col
-        for col in mri_all_features_cov_unrelated.columns
+        for col in mri_all_features_cov_cbcl_unrelated.columns
         if col not in lh_columns + rh_columns
     ]
 
@@ -475,8 +550,8 @@ def preprocess(
         other_cols = df[other_columns]
         return pd.concat([pd.DataFrame(avg_cols), other_cols], axis=1)
 
-    mri_all_features_cov_unrelated_avg = average_hemisphere_columns(
-        mri_all_features_cov_unrelated,
+    mri_all_features_cov_cbcl_unrelated_avg = average_hemisphere_columns(
+        mri_all_features_cov_cbcl_unrelated,
         lh_columns,
         rh_columns,
         other_columns,
@@ -584,11 +659,11 @@ def preprocess(
         + ["smri_area_cdk_total"]
     )
 
-    covariates_list = list(covariates.columns)
+    other_feature_list = list(covariates.columns) + list(cbcl_binary_scales.columns)
 
     features_combat = neuroCombat(
-        dat=np.array(mri_all_features_cov_unrelated_avg[imaging_feature_list]).T,
-        covars=mri_all_features_cov_unrelated_avg[covariates_list],
+        dat=np.array(mri_all_features_cov_cbcl_unrelated_avg[imaging_feature_list]).T,
+        covars=mri_all_features_cov_cbcl_unrelated_avg[other_feature_list],
         batch_col="img_device_label",
         categorical_cols=["demo_sex_v2"],
         continuous_cols=["interview_age"],
@@ -596,12 +671,12 @@ def preprocess(
 
     features_post_combat = pd.DataFrame(
         data=features_combat.T, columns=imaging_feature_list
-    ).set_index(mri_all_features_cov_unrelated_avg.index)
+    ).set_index(mri_all_features_cov_cbcl_unrelated_avg.index)
 
     features_cov_post_combat = pd.concat(
         [
             features_post_combat,
-            mri_all_features_cov_unrelated_avg[covariates_list],
+            mri_all_features_cov_cbcl_unrelated_avg[other_feature_list],
         ],
         axis=1,
     )
@@ -615,7 +690,8 @@ def preprocess(
         "demo_sex_v2",
         "img_device_label",
         "rel_family_id",
-    ]
+        "demo_comb_income_v2",
+    ] + list(cbcl_binary_scales.columns)
 
     for col in categorical_variables:
         if col in features_cov_post_combat.columns:
@@ -626,19 +702,14 @@ def preprocess(
     logging.info("Make sure the following columns are categorical: ")
     logging.info(", ".join(categorical_variables))
 
-    # Columns to exclude from standardization
-    exclude_cols = [
-        "demo_sex_v2",
-        "img_device_label",
-        "rel_family_id",
-    ]
-
     logging.info("Excluding the following columns from standardisation: ")
-    logging.info(", ".join(exclude_cols))
+    logging.info(", ".join(categorical_variables))
 
     # Get columns to scale (everything else)
     cols_to_scale = [
-        col for col in features_cov_post_combat.columns if col not in exclude_cols
+        col
+        for col in features_cov_post_combat.columns
+        if col not in categorical_variables
     ]
 
     # Standardize selected columns
@@ -673,8 +744,8 @@ def preprocess(
 if __name__ == "__main__":
     all_img_waves = [
         "baseline_year_1_arm_1",
-        "2_year_follow_up_y_arm_1",
-        "4_year_follow_up_y_arm_1",
+        # "2_year_follow_up_y_arm_1",
+        # "4_year_follow_up_y_arm_1",
     ]
 
     # Process all waves
