@@ -1,3 +1,4 @@
+import logging
 from pathlib import Path
 
 import numpy as np
@@ -25,12 +26,17 @@ def perform_lca(
         num_blrt_repetitions (int, optional): Number of bootstrap repetitions for
         BLRT. Defaults to 100.
     """
+    logging.info("-----------------------")
+
     # Load processed data from "preprocess/prepare_data.py"
     data_store_path = Path(
         "/",
         "Volumes",
         "GenScotDepression",
     )
+
+    if data_store_path.exists():
+        logging.info("Mounted data store path: %s", data_store_path)
 
     analysis_root_path = Path(
         data_store_path,
@@ -79,6 +85,8 @@ def perform_lca(
 
     min_classes = 2
     max_classes = 6
+
+    logging.info("Performing LCA with classes from %d to %d", min_classes, max_classes)
 
     results_dict = {
         "n_classes": [],
@@ -141,6 +149,10 @@ def perform_lca(
         index=False,
     )
 
+    logging.info(
+        "LCA model stats saved to %s", processed_data_path / "lca_model_stats.csv"
+    )
+
     # Predict class membership and calculate posterior probabilities
     model.fit(data)
 
@@ -175,6 +187,11 @@ def perform_lca(
         index=True,
     )
 
+    logging.info(
+        "LCA class parameters saved to %s",
+        processed_data_path / "lca_class_parameters.csv",
+    )
+
     predicted_class = model.predict(data)
     posterior_probs = model.predict_proba(data)
 
@@ -202,6 +219,11 @@ def perform_lca(
             "lca_class_member_entropy.csv",
         ),
         index=True,
+    )
+
+    logging.info(
+        "LCA class membership and entropy saved to %s",
+        processed_data_path / "lca_class_member_entropy.csv",
     )
 
 
