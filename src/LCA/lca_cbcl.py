@@ -22,6 +22,8 @@ def perform_lca(
     Args:
         version_name (str, optional): Subfolder name for processed data. Defaults to
         "test".
+        num_blrt_repetitions (int, optional): Number of bootstrap repetitions for
+        BLRT. Defaults to 100.
     """
     # Load processed data from "preprocess/prepare_data.py"
     data_store_path = Path(
