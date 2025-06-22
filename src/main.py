@@ -9,5 +9,9 @@ def main():
     # Perform LCA on the prepared data
     perform_lca(
         version_name="test",
-        num_blrt_repetitions=100,
+        num_blrt_repetitions=10,
     )
+
+
+if __name__ == "__main__":
+    main()
