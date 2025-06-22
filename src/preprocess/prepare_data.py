@@ -12,7 +12,10 @@ def prepare_data(
     wave: str = "baseline_year_1_arm_1",
     version_name: str = "test",
 ):
-    """Produce the cleaned sample with CBCL, covariates, and imaging features."""
+    """Produce the cleaned sample with CBCL, covariates, and imaging features.
+
+    Saved as 'mri_all_features_post_combat_rescaled.csv`.
+    """
     # %%
     logging.info("-----------------------")
     logging.info("Processing wave: %s", wave)
@@ -724,7 +727,7 @@ def prepare_data(
     rescaled_features_cov_cbcl_post_combat.to_csv(
         Path(
             processed_data_path,
-            f"mri_all_features_post_combat_rescaled-{wave}.csv",
+            "mri_all_features_post_combat_rescaled.csv",
         ),
         index=True,
     )
