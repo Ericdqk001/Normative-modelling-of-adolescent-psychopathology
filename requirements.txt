@@ -145,13 +145,12 @@ numpy==2.2.6
     #   nichord
     #   nilearn
     #   pandas
-    #   patsy
     #   ptitprince
     #   pysurfer
     #   scikit-learn
     #   scipy
     #   seaborn
-    #   statsmodels
+    #   stepmix
     #   torchvision
     #   transformers
 packaging==25.0
@@ -163,7 +162,6 @@ packaging==25.0
     #   nibabel
     #   nilearn
     #   plotly
-    #   statsmodels
     #   transformers
     #   wandb
 pandas==2.3.0
@@ -172,11 +170,9 @@ pandas==2.3.0
     #   nilearn
     #   normative-modelling-of-adolescent-psychopathology (pyproject.toml)
     #   seaborn
-    #   statsmodels
+    #   stepmix
 parso==0.8.4
     # via jedi
-patsy==1.0.1
-    # via statsmodels
 pexpect==4.9.0
     # via ipython
 pillow==11.2.1
@@ -255,10 +251,11 @@ ruff==0.11.13
     # via normative-modelling-of-adolescent-psychopathology (pyproject.toml)
 safetensors==0.5.3
     # via transformers
-scikit-learn==1.7.0
+scikit-learn==1.5.2
     # via
     #   nilearn
     #   normative-modelling-of-adolescent-psychopathology (pyproject.toml)
+    #   stepmix
 scipy==1.15.3
     # via
     #   nichord
@@ -267,7 +264,7 @@ scipy==1.15.3
     #   pysurfer
     #   scikit-learn
     #   seaborn
-    #   statsmodels
+    #   stepmix
 seaborn==0.11.0
     # via
     #   normative-modelling-of-adolescent-psychopathology (pyproject.toml)
@@ -282,7 +279,7 @@ smmap==5.0.2
     # via gitdb
 stack-data==0.6.3
     # via ipython
-statsmodels==0.14.4
+stepmix==2.2.1
     # via normative-modelling-of-adolescent-psychopathology (pyproject.toml)
 sympy==1.14.0
     # via torch
@@ -306,6 +303,7 @@ tornado==6.5.1
 tqdm==4.67.1
     # via
     #   huggingface-hub
+    #   stepmix
     #   transformers
 traitlets==5.14.3
     # via

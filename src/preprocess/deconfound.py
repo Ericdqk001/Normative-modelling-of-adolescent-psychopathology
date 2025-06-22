@@ -230,34 +230,6 @@ def deconfound_image_exc_sex():
     ).dropna()
 
     # %%
-    ### Merge all features here before deconfounding for descriptive analysis
-
-    # all_features_precon = (
-    #     t1w_cortical_features_bl_pass.merge(
-    #         gordon_cor_subcortical_bl_pass.dropna(),
-    #         left_index=True,
-    #         right_index=True,
-    #         how="outer",
-    #     )
-    #     .join(
-    #         covariates,
-    #         how="inner",
-    #     )
-    #     .join(
-    #         family_income,
-    #         how="inner",
-    #     )
-    # )
-
-    # all_features_precon.to_csv(
-    #     Path(
-    #         processed_data_path,
-    #         "all_brain_features_precon.csv",
-    #     ),
-    #     index=True,
-    # )
-
-    # %%
     ### Apply NeuroCombat to the imaging data
 
     # NeuroCombat for cortical thickness

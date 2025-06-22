@@ -1,7 +1,7 @@
 [project]
 name = "normative-modelling-of-adolescent-psychopathology"
 version = "0.1"
-description = "Depression detection."
+description = ""
 requires-python = "==3.10.*"
 dependencies = ["ruff",
 "wandb",
@@ -14,14 +14,16 @@ dependencies = ["ruff",
 "matplotlib",
 "scikit-learn",
 "ipykernel",
-"statsmodels",
 "seaborn",
 "pysurfer",
 "nilearn",
 "plotly",
 "nichord",
 "neuroCombat",
-"ptitprince",]
+"ptitprince",
+"stepmix",
+"scikit-learn~=1.5.0",
+]
 
 [tool.ruff]
 select = ["E", "F", "D", "I"]

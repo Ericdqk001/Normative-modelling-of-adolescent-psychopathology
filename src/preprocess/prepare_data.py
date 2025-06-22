@@ -8,10 +8,11 @@ from neuroCombat import neuroCombat
 from sklearn.preprocessing import LabelEncoder, StandardScaler
 
 
-def preprocess(
+def prepare_data(
     wave: str = "baseline_year_1_arm_1",
     version_name: str = "test",
 ):
+    """Produce the cleaned sample with CBCL, covariates, and imaging features."""
     # %%
     logging.info("-----------------------")
     logging.info("Processing wave: %s", wave)
@@ -470,10 +471,6 @@ def preprocess(
 
     cbcl_binary_scales = (cbcl_binary_scales >= 65).astype(int)
 
-    # Add one here because LCA expects 1/2 rather than 0/1
-
-    cbcl_binary_scales += 1
-
     # Join the CBCL scales to the imaging features and covariates
 
     mri_all_features_cov_cbcl = mri_all_features_cov.join(
@@ -673,7 +670,7 @@ def preprocess(
         data=features_combat.T, columns=imaging_feature_list
     ).set_index(mri_all_features_cov_cbcl_unrelated_avg.index)
 
-    features_cov_post_combat = pd.concat(
+    features_cov_cbcl_post_combat = pd.concat(
         [
             features_post_combat,
             mri_all_features_cov_cbcl_unrelated_avg[other_feature_list],
@@ -694,10 +691,10 @@ def preprocess(
     ] + list(cbcl_binary_scales.columns)
 
     for col in categorical_variables:
-        if col in features_cov_post_combat.columns:
-            features_cov_post_combat[col] = features_cov_post_combat[col].astype(
-                "category"
-            )
+        if col in features_cov_cbcl_post_combat.columns:
+            features_cov_cbcl_post_combat[col] = features_cov_cbcl_post_combat[
+                col
+            ].astype("category")
 
     logging.info("Make sure the following columns are categorical: ")
     logging.info(", ".join(categorical_variables))
@@ -708,23 +705,23 @@ def preprocess(
     # Get columns to scale (everything else)
     cols_to_scale = [
         col
-        for col in features_cov_post_combat.columns
+        for col in features_cov_cbcl_post_combat.columns
         if col not in categorical_variables
     ]
 
     # Standardize selected columns
     scaler = StandardScaler()
 
-    features_cov_post_combat[cols_to_scale] = scaler.fit_transform(
-        features_cov_post_combat[cols_to_scale]
+    features_cov_cbcl_post_combat[cols_to_scale] = scaler.fit_transform(
+        features_cov_cbcl_post_combat[cols_to_scale]
     )
 
     logging.info("Standardization of continuous variables is error-free, Checked")
 
-    rescaled_features_post_combat = features_post_combat.copy()
+    rescaled_features_cov_cbcl_post_combat = features_cov_cbcl_post_combat.copy()
 
     # This is for performing GLM (for unilateral features)
-    rescaled_features_post_combat.to_csv(
+    rescaled_features_cov_cbcl_post_combat.to_csv(
         Path(
             processed_data_path,
             f"mri_all_features_post_combat_rescaled-{wave}.csv",
@@ -737,7 +734,7 @@ def preprocess(
     logging.info(
         "Final Sample size for wave:%s %d",
         wave,
-        rescaled_features_post_combat.shape[0],
+        rescaled_features_cov_cbcl_post_combat.shape[0],
     )
 
 
@@ -750,4 +747,4 @@ if __name__ == "__main__":
 
     # Process all waves
     for wave in all_img_waves:
-        preprocess(wave=wave)
+        prepare_data(wave=wave)
