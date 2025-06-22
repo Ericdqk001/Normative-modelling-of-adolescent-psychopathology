@@ -8,6 +8,7 @@ from stepmix.stepmix import StepMix
 
 def perform_lca(
     version_name: str = "test",
+    num_blrt_repetitions: int = 100,
 ):
     """Perform latent class analysis (LCA).
 
@@ -120,7 +121,7 @@ def perform_lca(
         data,
         low=min_classes,
         high=max_classes,
-        n_repetitions=1,
+        n_repetitions=num_blrt_repetitions,
     )
 
     # Prepend a null value for the first class
