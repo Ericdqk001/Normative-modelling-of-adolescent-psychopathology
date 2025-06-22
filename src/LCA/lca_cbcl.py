@@ -9,7 +9,7 @@ from stepmix.stepmix import StepMix
 
 def perform_lca(
     version_name: str = "test",
-    num_blrt_repetitions: int = 100,
+    num_blrt_repetitions: int = 1,
 ):
     """Perform latent class analysis (LCA).
 
@@ -157,7 +157,7 @@ def perform_lca(
     model.fit(data)
 
     # Swap class numbers so the largest class is first
-    model.permute_classes(np.array([1, 0, 2, 3]))
+    model.permute_classes(np.array([2, 1, 3, 0]))
 
     params_df = model.get_parameters_df().reset_index()
 

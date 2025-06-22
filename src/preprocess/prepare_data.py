@@ -682,7 +682,9 @@ def prepare_data(
         + ["smri_area_cdk_total"]
     )
 
-    other_feature_list = list(covariates.columns) + list(cbcl_binary_scales.columns)
+    other_feature_list = (
+        list(covariates.columns) + list(cbcl_binary_scales.columns) + ["psych_dx"]
+    )
 
     features_combat = neuroCombat(
         dat=np.array(mri_all_features_cov_cbcl_unrelated_avg[imaging_feature_list]).T,
@@ -714,6 +716,7 @@ def prepare_data(
         "img_device_label",
         "rel_family_id",
         "demo_comb_income_v2",
+        "psych_dx",
     ] + list(cbcl_binary_scales.columns)
 
     for col in categorical_variables:
