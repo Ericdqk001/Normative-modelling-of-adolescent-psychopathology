@@ -474,15 +474,38 @@ def prepare_data(
 
     cbcl_binary_scales = (cbcl_binary_scales >= 65).astype(int)
 
-    # Join the CBCL scales to the imaging features and covariates
+    # Join the CBCL scales and psychiatric diagnosis to the imaging features
+    # and covariates
 
-    mri_all_features_cov_cbcl = mri_all_features_cov.join(
-        cbcl_binary_scales,
-        how="left",
-    ).dropna()
+    # Load psychiatric diagnoses
+    psych_dx_path = Path(
+        data_path,
+        "all_psych_dx_r5.csv",
+    )
+
+    psych_dx = pd.read_csv(
+        psych_dx_path,
+        index_col=0,
+        low_memory=False,
+    )
+
+    # Select the psychiatric diagnoses columns of interest
+    psych_dx = psych_dx["psych_dx"].copy()
+
+    mri_all_features_cov_cbcl = (
+        mri_all_features_cov.join(
+            cbcl_binary_scales,
+            how="left",
+        )
+        .join(
+            psych_dx,
+            how="left",
+        )
+        .dropna()
+    )
 
     logging.info(
-        "Sample size with all imaging features, covariates and CBCL scales, number = %d",
+        "Sample size with all imaging features, covariates and CBCL scales and psychiatric diagnosis, number = %d",
         mri_all_features_cov_cbcl.shape[0],
     )
 
