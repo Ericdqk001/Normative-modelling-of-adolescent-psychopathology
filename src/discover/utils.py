@@ -40,7 +40,7 @@ def prepare_discovery(
             test subjects.
     """
     imaging_features_lca_class = imaging_features.join(
-        lca_class_membership["predicted_class"],
+        lca_class_membership,
         how="left",
     )
 
@@ -126,7 +126,7 @@ def prepare_discovery(
 def compute_deviations(
     model,
     test_dataset=None,
-    output_data=None,
+    discovery_data=None,
 ) -> pd.DataFrame:
     """Compute whole-brain and regional reconstruction deviations for test subjects.
 
@@ -150,7 +150,7 @@ def compute_deviations(
         DEVICE,
     )
 
-    output_data["whole_brain_deviation"] = whole_brain_deviation(
+    discovery_data["whole_brain_deviation"] = whole_brain_deviation(
         test_dataset.to_numpy(),
         test_prediction,
     )
@@ -158,12 +158,12 @@ def compute_deviations(
     # Record reconstruction deviation for each brain region
 
     for i in range(test_prediction.shape[1]):
-        output_data[f"regional_deviation_{i}"] = regional_deviation(
+        discovery_data[f"regional_deviation_{i}"] = regional_deviation(
             test_dataset.to_numpy()[:, i],
             test_prediction[:, i],
         )
 
-    return output_data
+    return discovery_data
 
 
 def whole_brain_deviation(x, x_pred):

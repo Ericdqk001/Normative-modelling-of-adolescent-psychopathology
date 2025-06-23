@@ -5,7 +5,7 @@ from pathlib import Path
 import pandas as pd
 import torch
 
-from src.discover.utils import prepare_discovery
+from src.discover.utils import compute_deviations, prepare_discovery
 from src.modelling.train.train import build_model
 
 version_name = "test"
@@ -131,7 +131,7 @@ for modality in model_config.keys():
         entropy_threshold=0.2,
     )
 
-    hyperparameters = model_config["modality"]
+    hyperparameters = model_config[modality]
 
     model = build_model(
         config=hyperparameters,
@@ -141,3 +141,25 @@ for modality in model_config.keys():
     model.load_state_dict(torch.load(model_checkpoint_path))
 
     model.eval()
+
+    discovery_data = compute_deviations(
+        model=model,
+        test_dataset=test_dataset,
+        discovery_data=discovery_data,
+    )
+
+    results_path = Path(
+        analysis_root_path,
+        version_name,
+        "results",
+    )
+
+    if not results_path.exists():
+        results_path.mkdir(parents=True, exist_ok=True)
+
+    discovery_data_save_path = Path(
+        results_path,
+        f"discovery_data_{modality}.csv",
+    )
+
+    discovery_data.to_csv(discovery_data_save_path)

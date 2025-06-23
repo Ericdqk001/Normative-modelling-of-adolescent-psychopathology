@@ -8,6 +8,7 @@ from src.preprocess.split import split
 def main(
     version_name: str = "test",
     num_blrt_repetitions: int = 1,
+    config: dict = None,
 ):
     # Prepare the data for the specified wave
     prepare_data(version_name=version_name)
@@ -36,40 +37,40 @@ def main(
     ]
 
     for modality in modality_list:
-        modality_train_config = modality_train_config[modality]
+        modality_train_config = config[modality]
         modality_train_config["modality"] = modality
         train(modality_train_config)
 
 
 if __name__ == "__main__":
-    modality_train_config = {
+    hyperparameter_config = {
         "cortical_thickness": {
             "hidden_dim": [10],
             "latent_dim": 5,
             "batch_size": 64,
             "learning_rate": 0.01,
-            "epochs": 10,
+            "epochs": 1000,
         },
         "cortical_surface_area": {
             "hidden_dim": [10],
             "latent_dim": 5,
             "batch_size": 64,
             "learning_rate": 0.01,
-            "epochs": 10,
+            "epochs": 1000,
         },
         "cortical_volume": {
             "hidden_dim": [10],
             "latent_dim": 5,
             "batch_size": 64,
             "learning_rate": 0.01,
-            "epochs": 10,
+            "epochs": 1000,
         },
         "subcortical_volume": {
             "hidden_dim": [10],
             "latent_dim": 5,
             "batch_size": 64,
             "learning_rate": 0.01,
-            "epochs": 10,
+            "epochs": 1000,
         },
     }
 
@@ -78,4 +79,5 @@ if __name__ == "__main__":
     main(
         version_name=version_name,
         num_blrt_repetitions=num_blrt_repetitions,
+        config=hyperparameter_config,
     )
