@@ -1,5 +1,9 @@
+import numpy as np
 import pandas as pd
+import torch
 from sklearn.preprocessing import StandardScaler
+
+DEVICE = "cuda" if torch.cuda.is_available() else "cpu"
 
 
 def prepare_discovery(
@@ -119,42 +123,34 @@ def prepare_discovery(
     )
 
 
-def compute_distance_deviation(
+def compute_deviations(
     model,
-    train_dataset=None,
     test_dataset=None,
-    latent_dim=None,
     output_data=None,
 ) -> pd.DataFrame:
-    """Computes the mahalanobis distance of test samples from the distribution of the
-    training samples.
+    """Compute whole-brain and regional reconstruction deviations for test subjects.
+
+    Uses the model to predict reconstructed imaging features,
+    then calculates mean squared error (MSE) for the whole brain
+    and for each brain region.
+    Results are added as new columns to output_data.
+
+    Args:
+        model: Trained model with a pred_recon method for reconstruction.
+        test_dataset (pd.DataFrame, optional): Scaled test dataset. Defaults to None.
+        output_data (pd.DataFrame, optional): DataFrame to store deviation results.
+        Defaults to None.
+
+    Returns:
+        pd.DataFrame: output_data with added columns for whole-brain
+        and regional deviations.
     """
-    train_latent, _ = model.pred_latent(
-        train_dataset,
-        train_cov,
-        DEVICE,
-    )
-
-    test_latent, test_var = model.pred_latent(
-        test_dataset,
-        test_cov,
-        DEVICE,
-    )
-
     test_prediction = model.pred_recon(
         test_dataset,
-        test_cov,
         DEVICE,
     )
 
-    test_distance = latent_deviations_mahalanobis_across(
-        [test_latent],
-        [train_latent],
-    )
-
-    output_data["mahalanobis_distance"] = test_distance
-
-    output_data["reconstruction_deviation"] = reconstruction_deviation(
+    output_data["whole_brain_deviation"] = whole_brain_deviation(
         test_dataset.to_numpy(),
         test_prediction,
     )
@@ -162,23 +158,21 @@ def compute_distance_deviation(
     # Record reconstruction deviation for each brain region
 
     for i in range(test_prediction.shape[1]):
-        output_data[f"reconstruction_deviation_{i}"] = ind_reconstruction_deviation(
+        output_data[f"regional_deviation_{i}"] = regional_deviation(
             test_dataset.to_numpy()[:, i],
             test_prediction[:, i],
         )
 
-    output_data["standardised_reconstruction_deviation"] = (
-        standardise_reconstruction_deviation(output_data)
-    )
-
-    output_data["latent_deviation"] = latent_deviation(
-        train_latent, test_latent, test_var
-    )
-
-    individual_deviation = separate_latent_deviation(
-        train_latent, test_latent, test_var
-    )
-    for i in range(latent_dim):
-        output_data["latent_deviation_{0}".format(i)] = individual_deviation[:, i]
-
     return output_data
+
+
+def whole_brain_deviation(x, x_pred):
+    dev = np.mean((x - x_pred) ** 2, axis=1)
+
+    return dev
+
+
+def regional_deviation(x, x_pred):
+    dev = (x - x_pred) ** 2
+
+    return dev
