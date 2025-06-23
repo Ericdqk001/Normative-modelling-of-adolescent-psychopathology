@@ -98,24 +98,31 @@ def deconfound(
 
         model = ols(formula, train_set).fit()
 
-        print(model.summary())
-
         # Calculate residuals for the training set
         train_set[imaging_feature] = model.resid
+
+        # print(f"Train residuals for {imaging_feature}:")
+        # print(model.resid)
 
         # Predict on the validation set and calculate residuals
         val_predictions = model.predict(val_set)
         val_set[imaging_feature] = val_set[imaging_feature] - val_predictions
 
+        # print(f"Validation residuals for {imaging_feature}:")
+        # print(val_set[imaging_feature])
+
         # Predict on the test set and calculate residuals
         test_predictions = model.predict(test_set)
         test_set[imaging_feature] = test_set[imaging_feature] - test_predictions
+
+        # print(f"Test residuals for {imaging_feature}:")
+        # print(test_set[imaging_feature])
 
     # Combine all sets into one DataFrame
     imaging_features_resid_df = pd.concat(
         [train_set, val_set, test_set],
         axis=0,
-    ).reindex(imaging_features.index)
+    )
 
     # Save the deconfounded imaging features
     imaging_features_resid_path = Path(
