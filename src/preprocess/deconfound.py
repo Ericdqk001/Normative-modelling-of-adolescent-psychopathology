@@ -68,9 +68,6 @@ def deconfound_image_exc_sex(
         + features_of_interest["cortical_volume"]
         + features_of_interest["cortical_surface_area"]
         + features_of_interest["subcortical_volume"]
-        + ["smri_thick_cdk_mean"]
-        + ["smri_vol_scs_intracranialv"]
-        + ["smri_area_cdk_total"]
     )
 
     # %%
@@ -100,6 +97,8 @@ def deconfound_image_exc_sex(
             formula += " + smri_vol_scs_intracranialv"
 
         model = ols(formula, train_set).fit()
+
+        print(model.summary())
 
         # Calculate residuals for the training set
         train_set[imaging_feature] = model.resid
