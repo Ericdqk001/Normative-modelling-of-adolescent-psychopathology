@@ -197,7 +197,7 @@ def train_model(
 
             torch.save(
                 best_model,
-                Path(CHECKPOINT_PATH, f"VAE_model_weights{modality}.pt"),
+                Path(CHECKPOINT_PATH, f"VAE_model_weights_{modality}.pt"),
             )
 
             break

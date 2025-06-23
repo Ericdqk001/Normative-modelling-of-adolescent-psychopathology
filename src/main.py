@@ -36,13 +36,13 @@ def main(
     ]
 
     for modality in modality_list:
-        modality_train_config = modality_train_confit[modality]
+        modality_train_config = modality_train_config[modality]
         modality_train_config["modality"] = modality
         train(modality_train_config)
 
 
 if __name__ == "__main__":
-    modality_train_confit = {
+    modality_train_config = {
         "cortical_thickness": {
             "hidden_dim": [10],
             "latent_dim": 5,
