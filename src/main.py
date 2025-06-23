@@ -1,4 +1,5 @@
 from src.LCA.lca_cbcl import perform_lca
+from src.preprocess.deconfound import deconfound
 from src.preprocess.prepare_data import prepare_data
 from src.preprocess.split import split
 
@@ -15,6 +16,11 @@ def main(version_name: str = "test"):
 
     # Split the data into sets
     split(
+        version_name=version_name,
+    )
+
+    # Deconfound the imaging features
+    deconfound(
         version_name=version_name,
     )
 

@@ -7,7 +7,7 @@ import pandas as pd
 from statsmodels.formula.api import ols
 
 
-def deconfound_image_exc_sex(
+def deconfound(
     version_name: str = "test",
 ) -> None:
     # %%
@@ -130,4 +130,4 @@ def deconfound_image_exc_sex(
 
 
 if __name__ == "__main__":
-    deconfound_image_exc_sex()
+    deconfound()
