@@ -638,22 +638,19 @@ def prepare_data(
         return bilateral_roots, unilateral_features
 
     features_of_interest = {
-        "bilateral_cortical_thickness": get_bilateral_and_unilateral_features(
+        "cortical_thickness": get_bilateral_and_unilateral_features(
             t1w_cortical_thickness_rois
         )[0],
-        "bilateral_cortical_volume": get_bilateral_and_unilateral_features(
+        "cortical_volume": get_bilateral_and_unilateral_features(
             t1w_cortical_volume_rois
         )[0],
-        "bilateral_cortical_surface_area": get_bilateral_and_unilateral_features(
+        "cortical_surface_area": get_bilateral_and_unilateral_features(
             t1w_cortical_surface_area_rois
         )[0],
-        "bilateral_subcortical_volume": get_bilateral_and_unilateral_features(
+        "subcortical_volume": get_bilateral_and_unilateral_features(
             t1w_subcortical_volume_rois
-        )[0],
-        # Unilateral features are for performing GLM
-        "unilateral_subcortical_features": get_bilateral_and_unilateral_features(
-            t1w_subcortical_volume_rois
-        )[1],
+        )[0]
+        + get_bilateral_and_unilateral_features(t1w_subcortical_volume_rois)[1],
     }
 
     logging.info("Number of features for each modality:")
@@ -672,11 +669,10 @@ def prepare_data(
     # Apply neuroCombat to remove site effects
 
     imaging_feature_list = (
-        features_of_interest["bilateral_cortical_thickness"]
-        + features_of_interest["bilateral_cortical_volume"]
-        + features_of_interest["bilateral_cortical_surface_area"]
-        + features_of_interest["bilateral_subcortical_volume"]
-        + features_of_interest["unilateral_subcortical_features"]
+        features_of_interest["cortical_thickness"]
+        + features_of_interest["cortical_volume"]
+        + features_of_interest["cortical_surface_area"]
+        + features_of_interest["subcortical_volume"]
         + ["smri_thick_cdk_mean"]
         + ["smri_vol_scs_intracranialv"]
         + ["smri_area_cdk_total"]
