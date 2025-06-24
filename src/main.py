@@ -1,3 +1,4 @@
+from src.discover.compute_deviations import get_discovery_data
 from src.LCA.lca_cbcl import perform_lca
 from src.modelling.train.train import train
 from src.preprocess.deconfound import deconfound
@@ -40,6 +41,12 @@ def main(
         modality_train_config = config[modality]
         modality_train_config["modality"] = modality
         train(modality_train_config)
+
+    # Discover deviations in brain features
+    get_discovery_data(
+        model_config=config,
+        version_name=version_name,
+    )
 
 
 if __name__ == "__main__":

@@ -133,16 +133,16 @@ def compute_deviations(
     Uses the model to predict reconstructed imaging features,
     then calculates mean squared error (MSE) for the whole brain
     and for each brain region.
-    Results are added as new columns to output_data.
+    Results are added as new columns to discovery_data.
 
     Args:
         model: Trained model with a pred_recon method for reconstruction.
         test_dataset (pd.DataFrame, optional): Scaled test dataset. Defaults to None.
-        output_data (pd.DataFrame, optional): DataFrame to store deviation results.
+        discovery_data (pd.DataFrame, optional): DataFrame to store deviation results.
         Defaults to None.
 
     Returns:
-        pd.DataFrame: output_data with added columns for whole-brain
+        pd.DataFrame: discovery_data with added columns for whole-brain
         and regional deviations.
     """
     test_prediction = model.pred_recon(
