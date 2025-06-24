@@ -3,7 +3,7 @@ from pathlib import Path
 
 import pandas as pd
 
-from src.discover.utils import perform_U_test, test_U_test_assumptions
+from src.discover.utils import perform_U_test, test_U_test_assumptions, test_hemisphere_differences, create_averaged_regional_deviations
 
 
 def perform_stat_tests(
@@ -83,6 +83,72 @@ def perform_stat_tests(
     ]
     logging.info("Found %d deviation metrics", len(deviation_columns))
 
+    # Test hemisphere differences and perform selective averaging
+    logging.info("Testing hemisphere differences...")
+    try:
+        hemisphere_test_results = test_hemisphere_differences(discovery_data)
+        logging.info("Hemisphere testing completed successfully.")
+        logging.info("Hemisphere test results shape: %s", hemisphere_test_results.shape)
+        
+        # Summary of hemisphere differences
+        total_hemisphere_tests = len(hemisphere_test_results)
+        significant_hemisphere = hemisphere_test_results["significant"].sum()
+        logging.info(
+            "Significant hemisphere differences: %d/%d",
+            significant_hemisphere,
+            total_hemisphere_tests,
+        )
+        
+        # Log by test group
+        test_groups = ["inter_test", "exter_test", "high_test"]
+        for group in test_groups:
+            group_hemi_results = hemisphere_test_results[hemisphere_test_results["test_group"] == group]
+            if len(group_hemi_results) > 0:
+                group_hemi_significant = group_hemi_results["significant"].sum()
+                group_hemi_total = len(group_hemi_results)
+                logging.info(
+                    "Group %s hemisphere differences: %d/%d",
+                    group,
+                    group_hemi_significant,
+                    group_hemi_total,
+                )
+        
+        # Save hemisphere test results
+        hemisphere_save_path = Path(
+            results_path,
+            f"hemisphere_test_results_{modality}.csv",
+        )
+        hemisphere_test_results.to_csv(
+            hemisphere_save_path,
+            index=False,
+        )
+        logging.info(
+            "Hemisphere test results saved to: %s",
+            hemisphere_save_path,
+        )
+        
+    except Exception as e:
+        logging.error("Error in hemisphere testing: %s", str(e))
+        raise
+
+    # Create averaged regional deviations
+    logging.info("Creating averaged regional deviations...")
+    try:
+        discovery_data = create_averaged_regional_deviations(discovery_data, hemisphere_test_results)
+        logging.info("Regional averaging completed successfully.")
+        
+        # Update deviation columns count after averaging
+        deviation_columns_after = [
+            col
+            for col in discovery_data.columns
+            if col.startswith(("whole_brain_deviation", "regional_deviation_"))
+        ]
+        logging.info("Deviation metrics after averaging: %d", len(deviation_columns_after))
+        
+    except Exception as e:
+        logging.error("Error in regional averaging: %s", str(e))
+        raise
+
     # Perform assumption testing
     logging.info("Testing statistical assumptions...")
     try:
@@ -134,15 +200,27 @@ def perform_stat_tests(
             total_tests,
         )
 
-        if "p_value_FDR_corrected" in u_test_results.columns:
-            significant_corrected = (
-                u_test_results["p_value_FDR_corrected"] < 0.05
-            ).sum()
+        if "significant" in u_test_results.columns:
+            significant_corrected = u_test_results["significant"].sum()
             logging.info(
                 "Significant results (FDR-corrected): %d/%d",
                 significant_corrected,
                 total_tests,
             )
+
+            # Log results by test group
+            test_groups = ["inter_test", "exter_test", "high_test"]
+            for group in test_groups:
+                group_results = u_test_results[u_test_results["test_group"] == group]
+                if len(group_results) > 0:
+                    group_significant = group_results["significant"].sum()
+                    group_total = len(group_results)
+                    logging.info(
+                        "Group %s significant results: %d/%d",
+                        group,
+                        group_significant,
+                        group_total,
+                    )
 
     except Exception as e:
         logging.error("Error in U-test: %s", str(e))
