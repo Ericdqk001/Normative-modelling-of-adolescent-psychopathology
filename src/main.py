@@ -41,7 +41,7 @@ def main(
     for modality in modality_list:
         modality_train_config = config[modality]
         modality_train_config["modality"] = modality
-        train(modality_train_config)
+        train(modality_train_config, version_name)
 
     # Discover deviations in brain features
     get_discovery_data(

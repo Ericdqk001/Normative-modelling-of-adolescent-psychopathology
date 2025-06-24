@@ -12,73 +12,73 @@ from src.modelling.models.VAE import VAE
 
 DEVICE = torch.device("cuda" if torch.cuda.is_available() else "cpu")
 
-version_name = "test"
-# %%
-logging.info("-----------------------")
-logging.info("Training VAE model")
+def setup_train_data(version_name="test"):
+    """Setup data and paths for training."""
+    logging.info("-----------------------")
+    logging.info("Training VAE model")
 
-data_store_path = Path(
-    "/",
-    "Volumes",
-    "GenScotDepression",
-)
+    data_store_path = Path(
+        "/",
+        "Volumes",
+        "GenScotDepression",
+    )
 
-if data_store_path.exists():
-    logging.info("Mounted data store path: %s", data_store_path)
+    if data_store_path.exists():
+        logging.info("Mounted data store path: %s", data_store_path)
 
+    analysis_root_path = Path(
+        data_store_path,
+        "users",
+        "Eric",
+        "nm",
+    )
 
-analysis_root_path = Path(
-    data_store_path,
-    "users",
-    "Eric",
-    "nm",
-)
+    processed_data_path = Path(
+        analysis_root_path,
+        version_name,
+        "processed_data",
+    )
 
-processed_data_path = Path(
-    analysis_root_path,
-    version_name,
-    "processed_data",
-)
+    checkpoint_path = Path(
+        analysis_root_path,
+        version_name,
+        "checkpoints",
+    )
 
-CHECKPOINT_PATH = Path(
-    analysis_root_path,
-    version_name,
-    "checkpoints",
-)
+    if not checkpoint_path.exists():
+        checkpoint_path.mkdir(parents=True, exist_ok=True)
 
-if not CHECKPOINT_PATH.exists():
-    CHECKPOINT_PATH.mkdir(parents=True, exist_ok=True)
+    imaging_features_path = Path(
+        processed_data_path,
+        "mri_all_features_post_deconfound.csv",
+    )
 
-imaging_features_path = Path(
-    processed_data_path,
-    "mri_all_features_post_deconfound.csv",
-)
+    data = pd.read_csv(
+        imaging_features_path,
+        index_col=0,
+        low_memory=False,
+    )
 
-DATA = pd.read_csv(
-    imaging_features_path,
-    index_col=0,
-    low_memory=False,
-)
+    brain_features_of_interest_path = Path(
+        processed_data_path,
+        "features_of_interest.json",
+    )
 
-brain_features_of_interest_path = Path(
-    processed_data_path,
-    "features_of_interest.json",
-)
+    with open(brain_features_of_interest_path, "r") as f:
+        features_of_interest = json.load(f)
 
-with open(brain_features_of_interest_path, "r") as f:
-    FEATURES_OF_INTEREST = json.load(f)
+    data_splits_path = Path(
+        processed_data_path,
+        "imaging_data_splits.json",
+    )
 
-data_splits_path = Path(
-    processed_data_path,
-    "imaging_data_splits.json",
-)
+    with open(data_splits_path, "r") as f:
+        data_splits = json.load(f)
 
-with open(data_splits_path, "r") as f:
-    data_splits = json.load(f)
-
-
-TRAIN_SUBS = data_splits["train"]
-VAL_SUBS = data_splits["val"]
+    train_subs = data_splits["train"]
+    val_subs = data_splits["val"]
+    
+    return data, features_of_interest, train_subs, val_subs, checkpoint_path
 
 
 def build_model(
@@ -143,6 +143,7 @@ def train_model(
     model,
     train_loader,
     val_loader,
+    checkpoint_path,
     tolerance=50,
 ):
     model.to(DEVICE)
@@ -197,7 +198,7 @@ def train_model(
 
             torch.save(
                 best_model,
-                Path(CHECKPOINT_PATH, f"VAE_model_weights_{modality}.pt"),
+                Path(checkpoint_path, f"VAE_model_weights_{modality}.pt"),
             )
 
             break
@@ -211,29 +212,29 @@ def train_model(
         )
 
 
-def train(config):
+def train(config, version_name="test"):
+    data, features_of_interest, train_subs, val_subs, checkpoint_path = setup_train_data(version_name)
+    
     modality = config["modality"]
 
     logging.info("Training VAE model for modality: %s", modality)
+    logging.info("Using configuration: %s", config)
 
-    logging.info("Using coniguration: %s", config)
+    features = features_of_interest[modality]
 
-    features = FEATURES_OF_INTEREST[modality]
-
-    train_dataset = DATA.loc[
-        TRAIN_SUBS,
+    train_dataset = data.loc[
+        train_subs,
         features,
     ].to_numpy()
 
-    val_dataset = DATA.loc[
-        VAL_SUBS,
+    val_dataset = data.loc[
+        val_subs,
         features,
     ].to_numpy()
 
     scaler = StandardScaler()
 
     train_data = scaler.fit_transform(train_dataset)
-
     val_data = scaler.transform(val_dataset)
 
     train_loader = DataLoader(
@@ -260,6 +261,7 @@ def train(config):
         model,
         train_loader,
         val_loader,
+        checkpoint_path,
     )
 
 
