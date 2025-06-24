@@ -12,6 +12,8 @@ from src.modelling.train.train import build_model
 def get_discovery_data(
     model_config: dict,
     version_name: str = "test",
+    if_low_entropy: bool = True,
+    entropy_threshold: float = 0.2,
 ):
     logging.info("-----------------------")
     logging.info("Discovering deviations in brain features")
@@ -97,8 +99,8 @@ def get_discovery_data(
             lca_class_membership=lca_class_membership,
             features=features,
             data_splits=data_splits,
-            if_low_entropy=True,
-            entropy_threshold=0.2,
+            if_low_entropy=if_low_entropy,
+            entropy_threshold=entropy_threshold,
         )
 
         hyperparameters = model_config[modality]
