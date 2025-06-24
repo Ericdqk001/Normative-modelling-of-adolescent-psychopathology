@@ -59,19 +59,20 @@ def prepare_discovery(
             imaging_features_lca_class["shannon_entropy"] > entropy_threshold
         ].index
 
-        # Filter all subject lists in one step
-        subject_lists = [
-            "train_subs",
-            "test_subs",
-            "low_symp_test_subs",
-            "inter_test_subs",
-            "exter_test_subs",
-            "high_test_subs",
+        print(f"Removing {len(high_entropy_subs)} high entropy subjects")
+
+        # Filter each subject list individually
+        test_subs = [sub for sub in test_subs if sub not in high_entropy_subs]
+        low_symp_test_subs = [
+            sub for sub in low_symp_test_subs if sub not in high_entropy_subs
         ]
-        for name in subject_lists:
-            locals()[name] = [
-                sub for sub in locals()[name] if sub not in high_entropy_subs
-            ]
+        inter_test_subs = [
+            sub for sub in inter_test_subs if sub not in high_entropy_subs
+        ]
+        exter_test_subs = [
+            sub for sub in exter_test_subs if sub not in high_entropy_subs
+        ]
+        high_test_subs = [sub for sub in high_test_subs if sub not in high_entropy_subs]
 
     scaler = StandardScaler()
 
@@ -256,10 +257,12 @@ def test_single_metric_assumptions(discovery_data, metric_name):
     # Test for equal variances using Levene's test
     # Only include groups with data
     valid_groups = [values for values in groups.values() if len(values) > 0]
-    if len(valid_groups) >= 2:  # Need at least 2 groups for Levene's test
+
+    # Need at least 2 groups for Levene's test
+    if len(valid_groups) >= 2:
         levene_stat, levene_p = stats.levene(
             *valid_groups,
-            center="median",  # Recommended when distributions are not symmetrical
+            center="median",
         )
         results.append(
             {
