@@ -150,15 +150,21 @@ def compute_deviations(
         DEVICE,
     )
 
+    # Validate dimensions match
+    if test_prediction.shape[1] != len(test_dataset.columns):
+        raise ValueError(
+            f"Prediction shape {test_prediction.shape[1]} does not match "
+            f"test dataset features {len(test_dataset.columns)}"
+        )
+
     discovery_data["whole_brain_deviation"] = whole_brain_deviation(
         test_dataset.to_numpy(),
         test_prediction,
     )
 
-    # Record reconstruction deviation for each brain region
-
-    for i in range(test_prediction.shape[1]):
-        discovery_data[f"regional_deviation_{i}"] = regional_deviation(
+    # Record reconstruction deviation for each brain region using actual feature names
+    for i, feature_name in enumerate(test_dataset.columns):
+        discovery_data[f"regional_deviation_{feature_name}"] = regional_deviation(
             test_dataset.to_numpy()[:, i],
             test_prediction[:, i],
         )

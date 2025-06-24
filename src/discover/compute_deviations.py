@@ -139,3 +139,36 @@ def get_discovery_data(
             modality,
             discovery_data_save_path,
         )
+
+
+if __name__ == "__main__":
+    model_config = {
+        "cortical_thickness": {
+            "hidden_dim": [10],
+            "latent_dim": 5,
+            "batch_size": 64,
+            "learning_rate": 0.01,
+            "epochs": 1000,
+        },
+        "cortical_surface_area": {
+            "hidden_dim": [10],
+            "latent_dim": 5,
+            "batch_size": 64,
+            "learning_rate": 0.01,
+            "epochs": 1000,
+        },
+        "cortical_volume": {
+            "hidden_dim": [10],
+            "latent_dim": 5,
+            "batch_size": 64,
+            "learning_rate": 0.01,
+            "epochs": 1000,
+        },
+        "subcortical_volume": {
+            "hidden_dim": [10],
+            "latent_dim": 5,
+            "batch_size": 64,
+            "learning_rate": 0.01,
+            "epochs": 1000,
+        },
+    }
