@@ -150,16 +150,37 @@ def perform_stat_tests(
 
     # Save results
 
-    assumption_save_path = Path(results_path, f"assumption_test_results_{modality}.csv")
-    assumption_results.to_csv(assumption_save_path, index=False)
-    logging.info("Assumption test results saved to: %s", assumption_save_path)
+    assumption_save_path = Path(
+        results_path,
+        f"assumption_test_results_{modality}.csv",
+    )
+    assumption_results.to_csv(
+        assumption_save_path,
+        index=False,
+    )
+    logging.info(
+        "Assumption test results saved to: %s",
+        assumption_save_path,
+    )
 
     # Save U-test results
-    u_test_save_path = Path(results_path, f"u_test_results_{modality}.csv")
-    u_test_results.to_csv(u_test_save_path, index=False)
-    logging.info("U-test results saved to: %s", u_test_save_path)
+    u_test_save_path = Path(
+        results_path,
+        f"u_test_results_{modality}.csv",
+    )
+    u_test_results.to_csv(
+        u_test_save_path,
+        index=False,
+    )
+    logging.info(
+        "U-test results saved to: %s",
+        u_test_save_path,
+    )
 
-    logging.info("Statistical testing completed successfully for %s", modality)
+    logging.info(
+        "Statistical testing completed successfully for %s",
+        modality,
+    )
 
 
 if __name__ == "__main__":
