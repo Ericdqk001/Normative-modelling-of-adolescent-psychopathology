@@ -1,3 +1,5 @@
+import logging
+
 import numpy as np
 import pandas as pd
 import torch
@@ -290,9 +292,6 @@ def perform_single_mannwhitney_u(control_group, test_group):
     Returns:
         tuple: (U-statistic, p-value)
     """
-    if len(control_group) == 0 or len(test_group) == 0:
-        return np.nan, np.nan
-
     u_statistic, p_value = stats.mannwhitneyu(
         control_group, test_group, alternative="two-sided"
     )
@@ -353,25 +352,28 @@ def perform_U_test(discovery_data):
         pd.DataFrame: Results with columns:
         ['metric', 'test_group', 'U_statistic', 'p_value', 'p_value_FDR_corrected']
     """
-    # Identify all deviation metric columns
-    deviation_columns = [
+    # Identify all regional deviation metric columns
+    regional_deviation_columns = [
         col
         for col in discovery_data.columns
-        if col.startswith(("whole_brain_deviation", "regional_deviation_"))
+        if col.startswith(("regional_deviation_",))
     ]
 
     # Define test groups (excluding control)
-    test_groups = ["inter_test", "exter_test", "high_test"]
+    test_groups = [
+        "inter_test",
+        "exter_test",
+        "high_test",
+    ]
 
     all_results = []
-    all_p_values = []
 
-    # Perform U-tests for each metric and each test group vs control
-    for metric in deviation_columns:
-        groups = extract_groups_for_metric(discovery_data, metric)
-        control_group = groups["control"]
-
-        for test_group_name in test_groups:
+    for test_group_name in test_groups:
+        group_results = []
+        for metric in regional_deviation_columns:
+            # Extract control and test group data for the current metric
+            groups = extract_groups_for_metric(discovery_data, metric)
+            control_group = groups["control"]
             test_group = groups[test_group_name]
 
             # Perform Mann-Whitney U test
@@ -379,7 +381,7 @@ def perform_U_test(discovery_data):
                 control_group, test_group
             )
 
-            all_results.append(
+            group_results.append(
                 {
                     "metric": metric,
                     "test_group": test_group_name,
@@ -388,34 +390,297 @@ def perform_U_test(discovery_data):
                 }
             )
 
-            # Collect p-values for FDR correction (exclude NaN values)
-            if not np.isnan(p_value):
-                all_p_values.append(p_value)
+        # Apply FDR correction to the p-values for the test group
+        if group_results:
+            group_results_df = pd.DataFrame(group_results)
+
+            # Check for NaN p-values
+            if group_results_df["p_value"].isna().any():
+                logging.error(
+                    "NaN p-values found in group %s. Stopping processing.",
+                    test_group_name,
+                )
+                raise ValueError(f"NaN p-values found in group {test_group_name}")
+
+            # Apply FDR correction to the p-values
+            rejected, p_corrected = fdrcorrection(
+                group_results_df["p_value"].values, alpha=0.05
+            )
+
+            group_results_df["p_value_FDR_corrected"] = p_corrected
+            group_results_df["significant"] = rejected
+
+            all_results.append(group_results_df)
+
+        # Apply U-test to whole-brain deviation
+        whole_brain_metric = "whole_brain_deviation"
+
+        if whole_brain_metric in discovery_data.columns:
+            groups = extract_groups_for_metric(discovery_data, whole_brain_metric)
+            control_group = groups["control"]
+            test_group = groups[test_group_name]
+
+            u_statistic, p_value = perform_single_mannwhitney_u(
+                control_group, test_group
+            )
+
+            # Check for NaN p-value
+            if np.isnan(p_value):
+                logging.error(
+                    "NaN p-value found for whole-brain deviation in group %s. Stopping processing.",
+                    test_group_name,
+                )
+                raise ValueError(
+                    f"NaN p-value found for whole-brain deviation in group {test_group_name}"
+                )
+
+            group_results_df = pd.DataFrame(
+                {
+                    "metric": whole_brain_metric,
+                    "test_group": test_group_name,
+                    "U_statistic": u_statistic,
+                    "p_value": p_value,
+                    # Single feature, so no need for correction
+                    "p_value_FDR_corrected": p_value,
+                },
+                index=[0],
+            )
+
+            if p_value < 0.05:
+                rejected = True
             else:
-                all_p_values.append(np.nan)
+                rejected = False
 
-    # Create results DataFrame
-    results_df = pd.DataFrame(all_results)
+            group_results_df["significant"] = rejected
 
-    # Apply FDR correction to all p-values
-    if len(all_p_values) > 0:
-        # Remove NaN values for FDR correction
-        valid_p_indices = [i for i, p in enumerate(all_p_values) if not np.isnan(p)]
-        valid_p_values = [all_p_values[i] for i in valid_p_indices]
+            all_results.append(group_results_df)
 
-        if len(valid_p_values) > 0:
-            # Apply FDR correction
-            reject, p_corrected = fdrcorrection(valid_p_values, alpha=0.05)
-
-            # Create corrected p-values array with NaN for invalid entries
-            p_corrected_full = np.full(len(all_p_values), np.nan)
-            for idx, corrected_p in zip(valid_p_indices, p_corrected):
-                p_corrected_full[idx] = corrected_p
-
-            results_df["p_value_FDR_corrected"] = p_corrected_full
-        else:
-            results_df["p_value_FDR_corrected"] = np.nan
+    # Combine all results and return
+    if all_results:
+        combined_results = pd.concat(all_results, ignore_index=True)
     else:
-        results_df["p_value_FDR_corrected"] = np.nan
+        combined_results = pd.DataFrame(
+            columns=[
+                "metric",
+                "test_group",
+                "U_statistic",
+                "p_value",
+                "p_value_FDR_corrected",
+                "significant",
+            ]
+        )
 
-    return results_df
+    return combined_results
+
+
+def test_hemisphere_differences(discovery_data):
+    """Test for significant differences between lh/rh regional deviations within test groups only.
+
+    Tests whether left and right hemisphere regional deviations differ significantly within
+    each test group (inter_test, exter_test, high_test). Control group is excluded from
+    this analysis.
+
+    Args:
+        discovery_data (pd.DataFrame): DataFrame containing group indicators and
+        regional deviation metrics.
+
+    Returns:
+        pd.DataFrame: Results with columns:
+        ['region', 'test_group', 'U_statistic', 'p_value', 'p_value_FDR_corrected', 'significant']
+    """
+    # Identify regional deviation columns
+    regional_columns = [
+        col for col in discovery_data.columns if col.startswith("regional_deviation_")
+    ]
+
+    # Separate lh and rh columns and find bilateral pairs
+    lh_columns = [col for col in regional_columns if col.endswith("lh")]
+    rh_columns = [col for col in regional_columns if col.endswith("rh")]
+
+    # Create region mapping by removing hemisphere suffix
+    lh_regions = {}
+    rh_regions = {}
+
+    for col in lh_columns:
+        # Extract region name by removing "regional_deviation_" prefix and "lh" suffix
+        region = col.replace("regional_deviation_", "").replace("lh", "")
+        lh_regions[region] = col
+
+    for col in rh_columns:
+        # Extract region name by removing "regional_deviation_" prefix and "rh" suffix
+        region = col.replace("regional_deviation_", "").replace("rh", "")
+        rh_regions[region] = col
+
+    # Find bilateral regions (present in both hemispheres)
+    bilateral_regions = set(lh_regions.keys()) & set(rh_regions.keys())
+
+    logging.info(
+        "Found %d bilateral regional pairs for hemisphere testing",
+        len(bilateral_regions),
+    )
+
+    # Define test groups (excluding control)
+    test_groups = ["inter_test", "exter_test", "high_test"]
+
+    all_results = []
+
+    # Test hemisphere differences for each test group separately
+    for test_group_name in test_groups:
+        group_results = []
+        group_p_values = []
+
+        for region in bilateral_regions:
+            lh_col = lh_regions[region]
+            rh_col = rh_regions[region]
+
+            # Get test group subjects only
+            test_group_mask = discovery_data[f"{test_group_name}_subs"] == 1
+            lh_values = discovery_data[lh_col][test_group_mask].values
+            rh_values = discovery_data[rh_col][test_group_mask].values
+
+            # Perform Mann-Whitney U test between lh and rh within this test group
+            u_statistic, p_value = perform_single_mannwhitney_u(lh_values, rh_values)
+
+            group_results.append(
+                {
+                    "region": region,
+                    "test_group": test_group_name,
+                    "U_statistic": u_statistic,
+                    "p_value": p_value,
+                }
+            )
+
+            # Collect p-values for FDR correction
+            if not np.isnan(p_value):
+                group_p_values.append(p_value)
+            else:
+                group_p_values.append(np.nan)
+
+        # Apply FDR correction within this test group
+        if group_results:
+            group_results_df = pd.DataFrame(group_results)
+
+            # Check for NaN p-values
+            if group_results_df["p_value"].isna().any():
+                logging.error(
+                    "NaN p-values found in hemisphere testing for group %s. Stopping processing.",
+                    test_group_name,
+                )
+                raise ValueError(
+                    f"NaN p-values found in hemisphere testing for group {test_group_name}"
+                )
+
+            # Apply FDR correction
+            rejected, p_corrected = fdrcorrection(
+                group_results_df["p_value"].values, alpha=0.05
+            )
+
+            group_results_df["p_value_FDR_corrected"] = p_corrected
+            group_results_df["significant"] = rejected
+
+            all_results.append(group_results_df)
+
+    # Combine all results
+    if all_results:
+        combined_results = pd.concat(all_results, ignore_index=True)
+    else:
+        combined_results = pd.DataFrame(
+            columns=[
+                "region",
+                "test_group",
+                "U_statistic",
+                "p_value",
+                "p_value_FDR_corrected",
+                "significant",
+            ]
+        )
+
+    return combined_results
+
+
+def create_averaged_regional_deviations(discovery_data, hemisphere_test_results):
+    """Average bilateral deviations where no significant lh/rh differences exist in any test group.
+
+    For regions where no test group shows significant hemisphere differences, creates averaged
+    regional deviation columns. For regions where any test group shows significant differences,
+    keeps separate lh/rh columns.
+
+    Args:
+        discovery_data (pd.DataFrame): DataFrame containing group indicators and
+        regional deviation metrics.
+        hemisphere_test_results (pd.DataFrame): Results from test_hemisphere_differences.
+
+    Returns:
+        pd.DataFrame: Modified discovery_data with averaged bilateral regions where appropriate.
+    """
+    # Create a copy to avoid modifying the original
+    result_data = discovery_data.copy()
+
+    # Find regions that show significant differences in ANY test group
+    significant_regions = set(
+        hemisphere_test_results[hemisphere_test_results["significant"] == True][
+            "region"
+        ].values
+    )
+
+    # Get all bilateral regions from hemisphere test results
+    all_tested_regions = set(hemisphere_test_results["region"].values)
+
+    # Regions to average = tested regions - significant regions
+    regions_to_average = all_tested_regions - significant_regions
+
+    logging.info(
+        "Regions with significant hemisphere differences (keeping separate): %d",
+        len(significant_regions),
+    )
+    logging.info(
+        "Regions without significant hemisphere differences (averaging): %d",
+        len(regions_to_average),
+    )
+
+    # Average the non-significant bilateral regions
+    for region in regions_to_average:
+        lh_col = f"regional_deviation_{region}lh"
+        rh_col = f"regional_deviation_{region}rh"
+        avg_col = f"regional_deviation_{region}_avg"
+
+        if lh_col in result_data.columns and rh_col in result_data.columns:
+            # Create averaged column for all subjects (including control)
+            result_data[avg_col] = (result_data[lh_col] + result_data[rh_col]) / 2
+
+            # Remove the original lh/rh columns
+            result_data = result_data.drop(columns=[lh_col, rh_col])
+
+            logging.info("Averaged region: %s", region)
+
+    # Log summary
+    remaining_lh_cols = len(
+        [
+            col
+            for col in result_data.columns
+            if col.startswith("regional_deviation_") and col.endswith("lh")
+        ]
+    )
+    remaining_rh_cols = len(
+        [
+            col
+            for col in result_data.columns
+            if col.startswith("regional_deviation_") and col.endswith("rh")
+        ]
+    )
+    avg_cols = len(
+        [
+            col
+            for col in result_data.columns
+            if col.startswith("regional_deviation_") and col.endswith("_avg")
+        ]
+    )
+
+    logging.info(
+        "Final regional deviation columns: %d lh, %d rh, %d averaged",
+        remaining_lh_cols,
+        remaining_rh_cols,
+        avg_cols,
+    )
+
+    return result_data
