@@ -1,5 +1,6 @@
 import json
 import logging
+import os
 import random
 from pathlib import Path
 
@@ -11,21 +12,12 @@ def split(
 ):
     logging.info("-----------------------")
 
-    data_store_path = Path(
-        "/",
-        "Volumes",
-        "GenScotDepression",
-    )
+    # Get paths from environment variables
+    data_store_path = Path(os.getenv("ABCD_DATA_ROOT", "./abcd_data"))
+    analysis_root_path = Path(os.getenv("ANALYSIS_ROOT", "./analysis_output"))
 
     if data_store_path.exists():
-        logging.info("Mounted data store path: %s", data_store_path)
-
-    analysis_root_path = Path(
-        data_store_path,
-        "users",
-        "Eric",
-        "nm",
-    )
+        logging.info("Data store path: %s", data_store_path)
 
     processed_data_path = Path(
         analysis_root_path,

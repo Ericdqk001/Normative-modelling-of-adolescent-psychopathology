@@ -42,11 +42,37 @@ This project requires ABCD Study data. You'll need:
 3. **Demographics**: Age, sex, income, family relationships
 4. **Quality control**: MRI quality metrics
 
-Update the data paths in your configuration to match your data location.
+### Environment Variables
+
+Configure data paths using environment variables:
+
+```bash
+# Required: Path to ABCD data containing release5.1 folder
+export ABCD_DATA_ROOT="/path/to/your/abcd/data"
+
+# Required: Path for analysis outputs
+export ANALYSIS_ROOT="/path/to/your/analysis/output"
+```
+
+**ABCD Data Structure**: Your `ABCD_DATA_ROOT` should contain the `release5.1` folder with the standard ABCD directory structure:
+```
+$ABCD_DATA_ROOT/
+└── release5.1/
+    └── core/
+        ├── imaging/
+        ├── mental_health/
+        └── ... (other ABCD data folders)
+```
 
 ## Usage
 
-The main entry point is `src/main.py` with the `main()` function. Configure your hyperparameters and data paths, then run the complete pipeline.
+First, set your environment variables:
+```bash
+export ABCD_DATA_ROOT="/path/to/your/abcd/data"
+export ANALYSIS_ROOT="/path/to/your/analysis/output"
+```
+
+Then run the main entry point in `src/main.py` with the `main()` function to execute the complete pipeline.
 
 ## Pipeline Components
 

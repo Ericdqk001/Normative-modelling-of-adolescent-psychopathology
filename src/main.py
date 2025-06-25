@@ -1,4 +1,5 @@
 import logging
+import os
 from pathlib import Path
 
 from .discover.compute_deviations import get_discovery_data
@@ -68,17 +69,9 @@ if __name__ == "__main__":
     version_name = f"test_entropy_{entropy_threshold}"
 
     # Set up logging
-    data_store_path = Path(
-        "/",
-        "Volumes",
-        "GenScotDepression",
-    )
-    analysis_root_path = Path(
-        data_store_path,
-        "users",
-        "Eric",
-        "nm",
-    )
+    # Get paths from environment variables with defaults
+    data_store_path = Path(os.getenv("ABCD_DATA_ROOT", "./abcd_data"))
+    analysis_root_path = Path(os.getenv("ANALYSIS_ROOT", "./analysis_output"))
 
     version_path = Path(
         analysis_root_path,

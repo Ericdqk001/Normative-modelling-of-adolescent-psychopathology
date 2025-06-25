@@ -1,5 +1,6 @@
 import json
 import logging
+import os
 from pathlib import Path
 
 import numpy as np
@@ -20,21 +21,14 @@ def prepare_data(
     logging.info("-----------------------")
     logging.info("Processing wave: %s", wave)
 
-    data_store_path = Path(
-        "/",
-        "Volumes",
-        "GenScotDepression",
-    )
+    # Get paths from environment variables
+    data_store_path = Path(os.getenv("ABCD_DATA_ROOT", "./abcd_data"))
+    analysis_root_path = Path(os.getenv("ANALYSIS_ROOT", "./analysis_output"))
 
     if data_store_path.exists():
-        logging.info("Mounted data store path: %s", data_store_path)
-
-    analysis_root_path = Path(
-        data_store_path,
-        "users",
-        "Eric",
-        "nm",
-    )
+        logging.info("Data store path: %s", data_store_path)
+    else:
+        logging.warning("Data store path does not exist: %s", data_store_path)
 
     processed_data_path = Path(
         analysis_root_path,
@@ -53,10 +47,9 @@ def prepare_data(
             exist_ok=True,
         )
 
+    # ABCD data structure: data_store_path should contain release5.1 folder
     core_data_path = Path(
         data_store_path,
-        "data",
-        "abcd",
         "release5.1",
         "core",
     )
