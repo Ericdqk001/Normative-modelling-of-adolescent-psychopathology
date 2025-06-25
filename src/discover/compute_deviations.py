@@ -5,8 +5,8 @@ from pathlib import Path
 import pandas as pd
 import torch
 
-from src.discover.utils import compute_deviations, prepare_discovery
-from src.modelling.train.train import build_model
+from .utils import compute_deviations, prepare_discovery
+from ..modelling.train.train import build_model
 
 
 def get_discovery_data(

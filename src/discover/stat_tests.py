@@ -3,7 +3,7 @@ from pathlib import Path
 
 import pandas as pd
 
-from src.discover.utils import perform_U_test, test_U_test_assumptions, test_hemisphere_differences, create_averaged_regional_deviations
+from .utils import perform_U_test, test_U_test_assumptions, test_hemisphere_differences, create_averaged_regional_deviations
 
 
 def perform_stat_tests(

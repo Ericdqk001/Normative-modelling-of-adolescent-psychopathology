@@ -1,13 +1,13 @@
 import logging
 from pathlib import Path
 
-from src.discover.compute_deviations import get_discovery_data
-from src.discover.stat_tests import perform_stat_tests
-from src.LCA.lca_cbcl import perform_lca
-from src.modelling.train.train import train
-from src.preprocess.deconfound import deconfound
-from src.preprocess.prepare_data import prepare_data
-from src.preprocess.split import split
+from .discover.compute_deviations import get_discovery_data
+from .discover.stat_tests import perform_stat_tests
+from .LCA.lca_cbcl import perform_lca
+from .modelling.train.train import train
+from .preprocess.deconfound import deconfound
+from .preprocess.prepare_data import prepare_data
+from .preprocess.split import split
 
 
 def main(

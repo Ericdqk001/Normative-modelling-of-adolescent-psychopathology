@@ -7,8 +7,8 @@ import torch
 from sklearn.preprocessing import StandardScaler
 from torch.utils.data import DataLoader
 
-from src.modelling.load.load import MyDataset
-from src.modelling.models.VAE import VAE
+from ..load.load import MyDataset
+from ..models.VAE import VAE
 
 DEVICE = torch.device("cuda" if torch.cuda.is_available() else "cpu")
 

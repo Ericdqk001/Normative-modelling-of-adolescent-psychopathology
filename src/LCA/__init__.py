@@ -1,0 +1,1 @@
+"""Latent Class Analysis module."""
