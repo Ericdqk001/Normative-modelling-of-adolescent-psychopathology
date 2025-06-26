@@ -67,14 +67,35 @@ $ABCD_DATA_ROOT/
 
 ## Usage
 
-First, set your environment variables:
+### 1. Install the package
+
+First, install the package in development mode:
+
+```bash
+pip install -e .
+```
+
+### 2. Set environment variables
 
 ```bash
 export ABCD_DATA_ROOT="/path/to/your/abcd/data"
 export ANALYSIS_ROOT="/path/to/your/analysis/output"
 ```
 
-Then run the main entry point in `src/main.py` with the `main()` function to execute the complete pipeline.
+### 3. Run the pipeline
+
+Execute the complete pipeline using Python's module syntax:
+
+```bash
+python -m src.main
+```
+
+**Note**: The project is structured as a Python package with relative imports. You must either:
+
+- Install with `pip install -e .` and run `python -m src.main`, OR  
+- Run directly from the project root using `python -m src.main`
+
+Do NOT run `python src/main.py` directly as this will cause import errors.
 
 ## Pipeline Components
 

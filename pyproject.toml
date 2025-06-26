@@ -12,7 +12,6 @@ authors = [
     {name = "Qingkun Deng"}
 ]
 license = {text = "MIT"}
-]
 
 dependencies = ["ruff",
 "pre-commit",

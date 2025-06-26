@@ -4,8 +4,6 @@
 #
 #    pip-compile --output-file=requirements.txt pyproject.toml
 #
-annotated-types==0.7.0
-    # via pydantic
 appnope==0.1.4
     # via ipykernel
 apptools[preferences]==5.3.1
@@ -15,15 +13,11 @@ apptools[preferences]==5.3.1
 asttokens==3.0.0
     # via stack-data
 certifi==2025.6.15
-    # via
-    #   requests
-    #   sentry-sdk
+    # via requests
 cfgv==3.4.0
     # via pre-commit
 charset-normalizer==3.4.2
     # via requests
-click==8.2.1
-    # via wandb
 comm==0.2.2
     # via ipykernel
 configobj==5.0.9
@@ -47,27 +41,9 @@ exceptiongroup==1.3.0
 executing==2.2.0
     # via stack-data
 filelock==3.18.0
-    # via
-    #   huggingface-hub
-    #   torch
-    #   transformers
-    #   virtualenv
+    # via virtualenv
 fonttools==4.58.4
     # via matplotlib
-fsspec==2025.5.1
-    # via
-    #   huggingface-hub
-    #   torch
-gitdb==4.0.12
-    # via gitpython
-gitpython==3.1.44
-    # via wandb
-hf-xet==1.1.3
-    # via huggingface-hub
-huggingface-hub==0.33.0
-    # via
-    #   tokenizers
-    #   transformers
 identify==2.6.12
     # via pre-commit
 idna==3.10
@@ -82,8 +58,6 @@ ipython==8.37.0
     # via ipykernel
 jedi==0.19.2
     # via ipython
-jinja2==3.1.6
-    # via torch
 joblib==1.5.1
     # via
     #   nilearn
@@ -98,8 +72,6 @@ kiwisolver==1.4.8
     # via matplotlib
 lxml==5.4.0
     # via nilearn
-markupsafe==3.0.2
-    # via jinja2
 matplotlib==3.10.3
     # via
     #   nichord
@@ -114,14 +86,10 @@ matplotlib-inline==0.1.7
     #   ipython
 mayavi==4.8.3
     # via pysurfer
-mpmath==1.3.0
-    # via sympy
 narwhals==1.43.0
     # via plotly
 nest-asyncio==1.6.0
     # via ipykernel
-networkx==3.4.2
-    # via torch
 neurocombat==0.2.12
     # via normative-modelling-of-adolescent-psychopathology (pyproject.toml)
 nibabel==5.3.2
@@ -151,19 +119,14 @@ numpy==2.2.6
     #   scipy
     #   seaborn
     #   stepmix
-    #   torchvision
-    #   transformers
 packaging==25.0
     # via
-    #   huggingface-hub
     #   ipykernel
     #   matplotlib
     #   mayavi
     #   nibabel
     #   nilearn
     #   plotly
-    #   transformers
-    #   wandb
 pandas==2.3.0
     # via
     #   nichord
@@ -179,24 +142,18 @@ pillow==11.2.1
     # via
     #   matplotlib
     #   nichord
-    #   torchvision
 platformdirs==4.3.8
     # via
     #   jupyter-core
     #   virtualenv
-    #   wandb
 plotly==6.1.2
     # via normative-modelling-of-adolescent-psychopathology (pyproject.toml)
 pre-commit==4.2.0
     # via normative-modelling-of-adolescent-psychopathology (pyproject.toml)
 prompt-toolkit==3.0.51
     # via ipython
-protobuf==6.31.1
-    # via wandb
 psutil==7.0.0
-    # via
-    #   ipykernel
-    #   wandb
+    # via ipykernel
 ptitprince==0.2.7
     # via normative-modelling-of-adolescent-psychopathology (pyproject.toml)
 ptyprocess==0.7.0
@@ -205,10 +162,6 @@ pure-eval==0.2.3
     # via stack-data
 puremagic==1.29
     # via mayavi
-pydantic==2.11.7
-    # via wandb
-pydantic-core==2.33.2
-    # via pydantic
 pyface==8.0.0
     # via
     #   envisage
@@ -230,27 +183,15 @@ python-dateutil==2.9.0.post0
 pytz==2025.2
     # via pandas
 pyyaml==6.0.2
-    # via
-    #   huggingface-hub
-    #   pre-commit
-    #   transformers
-    #   wandb
+    # via pre-commit
 pyzmq==27.0.0
     # via
     #   ipykernel
     #   jupyter-client
-regex==2024.11.6
-    # via transformers
 requests==2.32.4
-    # via
-    #   huggingface-hub
-    #   nilearn
-    #   transformers
-    #   wandb
+    # via nilearn
 ruff==0.11.13
     # via normative-modelling-of-adolescent-psychopathology (pyproject.toml)
-safetensors==0.5.3
-    # via transformers
 scikit-learn==1.5.2
     # via
     #   nilearn
@@ -269,42 +210,20 @@ seaborn==0.11.0
     # via
     #   normative-modelling-of-adolescent-psychopathology (pyproject.toml)
     #   ptitprince
-sentry-sdk==2.30.0
-    # via wandb
-setproctitle==1.3.6
-    # via wandb
 six==1.17.0
     # via python-dateutil
-smmap==5.0.2
-    # via gitdb
 stack-data==0.6.3
     # via ipython
 stepmix==2.2.1
     # via normative-modelling-of-adolescent-psychopathology (pyproject.toml)
-sympy==1.14.0
-    # via torch
 threadpoolctl==3.6.0
     # via scikit-learn
-tokenizers==0.21.1
-    # via transformers
-torch==2.7.1
-    # via
-    #   normative-modelling-of-adolescent-psychopathology (pyproject.toml)
-    #   torchaudio
-    #   torchvision
-torchaudio==2.7.1
-    # via normative-modelling-of-adolescent-psychopathology (pyproject.toml)
-torchvision==0.22.1
-    # via normative-modelling-of-adolescent-psychopathology (pyproject.toml)
 tornado==6.5.1
     # via
     #   ipykernel
     #   jupyter-client
 tqdm==4.67.1
-    # via
-    #   huggingface-hub
-    #   stepmix
-    #   transformers
+    # via stepmix
 traitlets==5.14.3
     # via
     #   comm
@@ -324,33 +243,19 @@ traitsui==8.0.0
     # via
     #   envisage
     #   mayavi
-transformers==4.52.4
-    # via normative-modelling-of-adolescent-psychopathology (pyproject.toml)
 typing-extensions==4.14.0
     # via
     #   exceptiongroup
-    #   huggingface-hub
     #   ipython
     #   nibabel
-    #   pydantic
-    #   pydantic-core
-    #   torch
-    #   typing-inspection
-    #   wandb
-typing-inspection==0.4.1
-    # via pydantic
 tzdata==2025.2
     # via pandas
 urllib3==2.4.0
-    # via
-    #   requests
-    #   sentry-sdk
+    # via requests
 virtualenv==20.31.2
     # via pre-commit
 vtk==9.4.2
     # via mayavi
-wandb==0.20.1
-    # via normative-modelling-of-adolescent-psychopathology (pyproject.toml)
 wcwidth==0.2.13
     # via prompt-toolkit
 
