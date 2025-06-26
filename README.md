@@ -92,8 +92,7 @@ python -m src.main
 
 **Note**: The project is structured as a Python package with relative imports. You must either:
 
-- Install with `pip install -e .` and run `python -m src.main`, OR  
-- Run directly from the project root using `python -m src.main`
+- Install with `pip install -e .` and run `python -m src.main`
 
 Do NOT run `python src/main.py` directly as this will cause import errors.
 
