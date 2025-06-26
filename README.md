@@ -55,7 +55,8 @@ export ANALYSIS_ROOT="/path/to/your/analysis/output"
 ```
 
 **ABCD Data Structure**: Your `ABCD_DATA_ROOT` should contain the `release5.1` folder with the standard ABCD directory structure:
-```
+
+```bash
 $ABCD_DATA_ROOT/
 └── release5.1/
     └── core/
@@ -67,6 +68,7 @@ $ABCD_DATA_ROOT/
 ## Usage
 
 First, set your environment variables:
+
 ```bash
 export ABCD_DATA_ROOT="/path/to/your/abcd/data"
 export ANALYSIS_ROOT="/path/to/your/analysis/output"

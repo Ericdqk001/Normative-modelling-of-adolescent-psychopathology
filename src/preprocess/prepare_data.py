@@ -467,31 +467,12 @@ def prepare_data(
 
     cbcl_binary_scales = (cbcl_binary_scales >= 65).astype(int)
 
-    # Join the CBCL scales and psychiatric diagnosis to the imaging features
-    # and covariates
-
-    # Load psychiatric diagnoses
-    psych_dx_path = Path(
-        data_path,
-        "all_psych_dx_r5.csv",
-    )
-
-    psych_dx = pd.read_csv(
-        psych_dx_path,
-        index_col=0,
-        low_memory=False,
-    )
-
-    # Select the psychiatric diagnoses columns of interest
-    psych_dx = psych_dx["psych_dx"].copy()
+    # Join the CBCL scales to the imaging features and covariates
+    # Note: Psychiatric diagnosis filtering has been removed for public release
 
     mri_all_features_cov_cbcl = (
         mri_all_features_cov.join(
             cbcl_binary_scales,
-            how="left",
-        )
-        .join(
-            psych_dx,
             how="left",
         )
         .dropna()
@@ -672,7 +653,7 @@ def prepare_data(
     )
 
     other_feature_list = (
-        list(covariates.columns) + list(cbcl_binary_scales.columns) + ["psych_dx"]
+        list(covariates.columns) + list(cbcl_binary_scales.columns)
     )
 
     features_combat = neuroCombat(
@@ -705,7 +686,6 @@ def prepare_data(
         "img_device_label",
         "rel_family_id",
         "demo_comb_income_v2",
-        "psych_dx",
     ] + list(cbcl_binary_scales.columns)
 
     for col in categorical_variables:

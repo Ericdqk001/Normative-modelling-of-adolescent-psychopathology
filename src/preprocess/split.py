@@ -77,12 +77,11 @@ def split(
 
     logging.info("Sample size of t1w_high_symptom: %d", len(imaging_high_symptom))
 
-    imaging_low_symptom = imaging_low_symptom[
-        imaging_low_symptom["psych_dx"] == "control"
-    ]
-
+    # Note: Psychiatric diagnosis filtering removed for public release
+    # Users can implement their own control group filtering if needed
+    
     logging.info(
-        "Sample size of imaging_low_symptom after keeping only controls: %d",
+        "Sample size of imaging_low_symptom: %d",
         len(imaging_low_symptom),
     )
 
